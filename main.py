@@ -1,9 +1,10 @@
 from ssd_check import check_func
 from final_paths import gen_paths
 from manager import manager_func
-
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
 import constants
 import json
+import torch
 
 #change this negation of if statement while dealing with actual ssd
 if not check_func():
@@ -17,8 +18,11 @@ if not check_func():
 
     final_paths = gen_paths(main_path=main_paths)
     
+    processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+    model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b",dtype=torch.float16).to("mps")
+
     for path in final_paths:
-        manager_func(path)
+        manager_func(path,processor,model)
 
 else:
     print("SSD Disconnected")

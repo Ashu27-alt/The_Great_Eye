@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-def write_finder_comment(image_path, description):
+def write_finder_comment(image_path, description,logger):
     """
     Write comment that actually appears in Finder's Get Info
     and is properly indexed by Spotlight
@@ -26,8 +26,10 @@ def write_finder_comment(image_path, description):
             capture_output=True,
             text=True
         )
-        print(f"Set Finder comment for: {os.path.basename(image_path)}")
+        #print(f"Set Finder comment for: {os.path.basename(image_path)}")
+        logger.info(f"Set Finder comment for: {os.path.basename(image_path)}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ Error: {e.stderr}")
+        #print(f"✗ Error: {e.stderr}")
+        logger.error(f"✗ Error: {e.stderr}")
         return False

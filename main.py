@@ -5,10 +5,11 @@ from transformers import Blip2Processor, Blip2ForConditionalGeneration
 import constants
 import json
 import torch
+import logging
+import pathlib
 
-#change this negation of if statement while dealing with actual ssd
-if not check_func():
-    with open(constants.TEST_CONFIG_PATH) as f:
+if check_func():
+    with open(constants.CONFIG_PATH) as f:
         config = json.load(f)
 
     main_paths = config.get("watched_dir")

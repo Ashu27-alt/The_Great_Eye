@@ -38,3 +38,7 @@ Traceback (most recent call last):
     os.chdir(main_dir)
     ~~~~~~~~^^^^^^^^^^
 TypeError: chdir: path should be string, bytes, os.PathLike or integer, not list
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:22<00:22, 22.47s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:33<00:00, 15.85s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:33<00:00, 16.85s/it]
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.98s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:28<00:00, 13.89s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:28<00:00, 14.36s/it]

@@ -1,4 +1,2 @@
-2025-12-30 20:48:10,249 | ERROR | my_app | SSD Disconnected
-2025-12-30 20:48:10,249 | ERROR | my_app | SSD Disconnected
-2025-12-30 22:38:58,388 | ERROR | my_app | SSD Disconnected
-2025-12-30 22:38:58,388 | ERROR | my_app | SSD Disconnected
+2025-12-31 22:31:47,068 | WARNING | my_app | SSD disconnected mid-run
+2025-12-31 22:31:47,068 | WARNING | my_app | SSD disconnected mid-run

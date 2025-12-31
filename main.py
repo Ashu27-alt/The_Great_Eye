@@ -20,7 +20,7 @@ def extra():
             logging.config.dictConfig(config)
 
     setup_logging()
-    logger = logging.getLogger("my_app")
+    logger = logging.getLogger("The_Great_Eye")
 
     if not check_func():
         logger.error("SSD Disconnected")

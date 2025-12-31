@@ -2,3 +2,5 @@ constants.py
 venv
 __pycache__
 Test_dir
+err.log
+out.log

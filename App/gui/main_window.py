@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QLabel,QFileDialog,QSizePolicy,QLineEdit,QProgressBar,QApplication
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QLabel,QFileDialog,QSizePolicy,QLineEdit,QProgressBar,QApplication,QGridLayout
 from PyQt5.QtCore import Qt,QTimer
-from gui.thread import EmbedWorker
+from PyQt5.QtGui import QPixmap
+from gui.thread import EmbedWorker,SearchEngine
 import torch
 from core.Search.search_res import SearchClass
 
@@ -10,10 +11,12 @@ class mainWindow(QWidget):
 
        SearchClass.loadIndex()
 
-       #Model initialization
        QApplication.setStyle("Fusion")
+       
+       #Model initialization
        self.model = None
        self.processor = None
+
        if torch.cuda.is_available():
            self.device = 'cuda'
        elif torch.backends.mps.is_available():
@@ -22,7 +25,7 @@ class mainWindow(QWidget):
            self.device='cpu'     
            
        self.setWindowTitle("The Great Eye")
-       self.resize(1000, 700)
+       self.resize(1200, 600)
 
        #layout components
        main_layout = QVBoxLayout()
@@ -30,7 +33,7 @@ class mainWindow(QWidget):
        row2 = QHBoxLayout()
        row3 = QHBoxLayout()
        row4 = QHBoxLayout()
-       row5 = QHBoxLayout()
+       self.grid=QGridLayout()
 
        #components
        self.browse_button = QPushButton("Browse")
@@ -72,7 +75,7 @@ class mainWindow(QWidget):
        row4.addStretch()
 
 
-       row5.addWidget(self.placeholder)
+       self.grid.addWidget(self.placeholder,1,2)
 
        #CSS
        self.browse_button.setMinimumHeight(40)
@@ -89,7 +92,7 @@ class mainWindow(QWidget):
        self.folderPath.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
        self.folderPath.setMinimumHeight(40)
 
-       self.folderPath.setStyleSheet("""
+       self.setStyleSheet("""
         QLabel {
             border: 2px solid #555;
             border-radius: 8px;
@@ -113,14 +116,14 @@ class mainWindow(QWidget):
         }
         
         QProgressBar {
-            border: 2px solid #ffffff; /* White border to   see it against dark background */
+            border: 2px solid #ffffff;
             border-radius: 5px;
             text-align: center;
-            background-color: #333333; /* Darker grey   background */
-            color: white; /* Progress percentage text color     */
+            background-color: #333333;
+            color: white;
         }
         QProgressBar::chunk {
-            background-color: #f39c12; /* Bright Orange     chunk */
+            background-color: #f39c12;
             width: 20px;
         }
         """)
@@ -135,17 +138,53 @@ class mainWindow(QWidget):
        main_layout.addLayout(row2)
        main_layout.addLayout(row3)
        main_layout.addLayout(row4)
-       main_layout.addLayout(row5,80)
+       main_layout.addLayout(self.grid,80)
        main_layout.addStretch(1)
        self.setLayout(main_layout)
 
 
 # SETTING UP ALL REQUIRED FUNCTIONS
 
+    def displayImages(self,paths):
+        self.placeholder.hide()
+        col=4
+        r=0
+        c=0
+        for path in paths:
+            path_comp=path.split("/")
+            img_name=path_comp[-1]
+
+            box=QVBoxLayout()
+
+            label=QLabel(self)
+            name_label=QLabel(self)
+            name_label.setText(img_name)
+
+            pixmap=QPixmap(path)
+            scaled_pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            if not pixmap.isNull():
+                label.setPixmap(scaled_pixmap)
+            else:
+                label.setText('Image not found.')
+            
+            label.setAlignment(Qt.AlignCenter)
+            name_label.setAlignment(Qt.AlignCenter)
+            box.addWidget(label)
+            box.addWidget(name_label)
+            self.grid.addLayout(box,r,c)
+            c+=1
+            if c%col == 0:
+                c=0
+                r+=1
+            else:
+                continue
+    
     #getting the paths of similar images
     def handleSearch(self,vector):
-        paths=SearchClass.res(vector)
-        self.placeholder.setText(paths)
+        self.worker=SearchEngine(vector=vector)
+        self.worker.result.connect(self.displayImages)
+        self.worker.finished.connect(lambda:self.folderPath.setText('Displaying Results'))
+        self.worker.start()
 
     #called when the processing of a given folder is completed
     def onIndexingComplete(self):
@@ -173,7 +212,7 @@ class mainWindow(QWidget):
             device=self.device
         )
         self.worker.result.connect(self.handleSearch)
-        self.worker.finished.connect(lambda:self.placeholder.setText('someting working'))
+        self.worker.finished.connect(lambda:self.placeholder.setText('Someting working.....'))
         self.worker.start()
 
     #starts the process the embed the images using CLIP and then storing it in vectors.index(faiss)

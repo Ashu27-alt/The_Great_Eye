@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 from core.Embedding.clip_embedder import Embedder
 from transformers import CLIPModel,CLIPProcessor
+from core.Search.search_res import SearchClass
 
 class EmbedWorker(QThread):
     finished = pyqtSignal()
@@ -42,3 +43,16 @@ class EmbedWorker(QThread):
             )
             self.result.emit(vector)
             self.finished.emit()
+
+class SearchEngine(QThread):
+    finished=pyqtSignal()
+    result=pyqtSignal(object)
+
+    def __init__(self,*,vector):
+        super().__init__()
+        self.vec=vector
+
+    def run(self):
+        res=SearchClass.res(self.vec)
+        self.result.emit(res)
+        self.finished.emit()

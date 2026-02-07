@@ -1,6 +1,7 @@
 import faiss
 import constant
 import os
+import sqlite3
 
 class SearchClass():
 	_cached_index=None
@@ -22,6 +23,20 @@ class SearchClass():
 		
 		try:
 			distances,indices=SearchClass._cached_index.search(vector,10)
-			return indices
+
+			conn=sqlite3.connect(constant.DB_PATH)
+			c=conn.cursor()
+			paths=[]
+
+			for idx in indices[0]:
+				dbId=int(idx)+1
+
+				c.execute("SELECT image_path FROM processed WHERE Id = ?", (dbId,))
+				data=c.fetchone()
+				if data:
+					paths.append(data[0])
+			
+			return paths
+
 		except Exception as e:
 			print(e)

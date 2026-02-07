@@ -242,10 +242,11 @@ class mainWindow(QWidget):
         QTimer.singleShot(1000,lambda: self.progressBar.setVisible(False)) 
         self.process_button.setEnabled(True)
         self.browse_button.setEnabled(True)
+        self.search_button.setEnabled(True)
 
     #opens a dialog to choose a folder
     def browseFunc(self):
-        dirPath = QFileDialog.getExistingDirectory(None,"Select Folder","/Users/ashutosh/The_Great_Eye/App/Test_dir",QFileDialog.Option.ShowDirsOnly)
+        dirPath = QFileDialog.getExistingDirectory(None,"Select Folder","/Users/ashutosh",QFileDialog.Option.ShowDirsOnly)
         if dirPath:
             self.folderPath.setText(dirPath)
             self.process_button.show()
@@ -288,3 +289,4 @@ class mainWindow(QWidget):
 
         self.process_button.setEnabled(False)
         self.browse_button.setEnabled(False)
+        self.search_button.setEnabled(False)

@@ -4,3 +4,5 @@ __pycache__
 Test_dir
 err.log
 out.log
+dist 
+build

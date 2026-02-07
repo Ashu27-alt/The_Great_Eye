@@ -22,7 +22,7 @@ class SearchClass():
 			return []
 		
 		try:
-			distances,indices=SearchClass._cached_index.search(vector,10)
+			distances,indices=SearchClass._cached_index.search(vector,20)
 
 			conn=sqlite3.connect(constant.DB_PATH)
 			c=conn.cursor()

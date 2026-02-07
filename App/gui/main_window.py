@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QLabel,QFileDialog,QSizePolicy,QLineEdit,QProgressBar,QApplication,QGridLayout
+from PyQt5.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QLabel,QFileDialog,QSizePolicy,QLineEdit,QProgressBar,QApplication,QGridLayout,QScrollArea
 from PyQt5.QtCore import Qt,QTimer
 from PyQt5.QtGui import QPixmap
 from gui.thread import EmbedWorker,SearchEngine
 import torch
 from core.Search.search_res import SearchClass
+from gui.clickable_label import ClickableImage
 
 class mainWindow(QWidget):
     def __init__(self):
@@ -12,7 +13,7 @@ class mainWindow(QWidget):
        SearchClass.loadIndex()
 
        QApplication.setStyle("Fusion")
-       
+
        #Model initialization
        self.model = None
        self.processor = None
@@ -33,7 +34,14 @@ class mainWindow(QWidget):
        row2 = QHBoxLayout()
        row3 = QHBoxLayout()
        row4 = QHBoxLayout()
-       self.grid=QGridLayout()
+       self.scrollArea=QScrollArea()
+       self.scrollArea.setWidgetResizable(True)
+
+       self.container=QWidget()
+       self.scrollArea.setWidget(self.container)
+
+       self.grid=QGridLayout(self.container)
+       self.grid.setSpacing(20)
 
        #components
        self.browse_button = QPushButton("Browse")
@@ -93,6 +101,12 @@ class mainWindow(QWidget):
        self.folderPath.setMinimumHeight(40)
 
        self.setStyleSheet("""
+        QScrollArea {
+            border: 2px solid #555;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
         QLabel {
             border: 2px solid #555;
             border-radius: 8px;
@@ -126,6 +140,21 @@ class mainWindow(QWidget):
             background-color: #f39c12;
             width: 20px;
         }
+        QScrollArea {
+            border: none;
+            background-color: #1e1e1e;
+        }
+        QScrollBar:vertical {
+            border: none;
+            background: #2c3e50;
+            width: 10px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #6ac5fe;
+            min-height: 20px;
+            border-radius: 5px;
+        }
         """)
        
        #functionalities
@@ -138,16 +167,32 @@ class mainWindow(QWidget):
        main_layout.addLayout(row2)
        main_layout.addLayout(row3)
        main_layout.addLayout(row4)
-       main_layout.addLayout(self.grid,80)
+       main_layout.addWidget(self.scrollArea,80)
        main_layout.addStretch(1)
        self.setLayout(main_layout)
 
 
 # SETTING UP ALL REQUIRED FUNCTIONS
+    def clear_grid(self):
+        # This specifically clears the items inside the grid
+        while self.grid.count():
+            item = self.grid.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            elif item.layout():
+                # If you used a QVBoxLayout (box) for the image+text
+                self.clear_sub_layout(item.layout())
+
+    def clear_sub_layout(self, layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
 
     def displayImages(self,paths):
-        self.placeholder.hide()
-        col=4
+        self.clear_grid()
+        col=5
         r=0
         c=0
         for path in paths:
@@ -156,12 +201,12 @@ class mainWindow(QWidget):
 
             box=QVBoxLayout()
 
-            label=QLabel(self)
+            label=ClickableImage(path=path,parent=self)
             name_label=QLabel(self)
             name_label.setText(img_name)
 
             pixmap=QPixmap(path)
-            scaled_pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            scaled_pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             if not pixmap.isNull():
                 label.setPixmap(scaled_pixmap)
             else:
@@ -178,6 +223,10 @@ class mainWindow(QWidget):
                 r+=1
             else:
                 continue
+        self.grid.setRowStretch(self.grid.rowCount(), 1)
+        self.grid.setColumnStretch(col, 1)
+        self.browse_button.setEnabled(True)
+        self.search_button.setEnabled(True)
     
     #getting the paths of similar images
     def handleSearch(self,vector):
@@ -204,6 +253,7 @@ class mainWindow(QWidget):
     #starts the flow of the search operation for similar images
     def searchFunc(self):
         query = self.searchInput.text()
+        self.folderPath.setText("Searching.....")
         self.worker=EmbedWorker(
             mode='text',
             payload=query,
@@ -212,8 +262,10 @@ class mainWindow(QWidget):
             device=self.device
         )
         self.worker.result.connect(self.handleSearch)
-        self.worker.finished.connect(lambda:self.placeholder.setText('Someting working.....'))
+        self.worker.finished.connect(lambda:self.folderPath.setText("Searching......"))
         self.worker.start()
+        self.browse_button.setEnabled(False)
+        self.search_button.setEnabled(False)
 
     #starts the process the embed the images using CLIP and then storing it in vectors.index(faiss)
     def processFunc(self):
